@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vocabulary Upgrade Pro | 寫作單字升級旗艦版</title>
+    <style>
+        :root {
+            --charcoal: #333333;
+            --khaki: #C3B091;
+            --off-white: #F4F4F4;
+            --white: #FFFFFF;
+            --success: #2E8B57;
+            --fail: #CD5C5C;
+            --note-bg: #E8F4F8; /* 句型筆記背景色 */
+            --note-text: #006699;
+            --alert-text: #D32F2F;
+            --border-color: #e0e0e0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--off-white);
+            color: var(--charcoal);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            background-color: var(--charcoal);
+            color: var(--khaki);
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        h1 { margin: 0; font-size: 1.1rem; letter-spacing: 1px; }
+        p.subtitle { margin: 4px 0 0; font-size: 0.75rem; color: #ccc; }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 60px;
+        }
+
+        /* Card Setup */
+        .scene {
+            width: 100%;
+            height: 550px; /* 固定高度 */
+            max-height: 75vh;
+            perspective: 1000px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .card.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 16px;
+            background: var(--white);
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            top: 0; left: 0;
+        }
+
+        /* Front Face */
+        .card-face.front {
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .front-label { font-size: 0.8rem; color: #aaa; margin-bottom: 20px; letter-spacing: 1px; text-transform: uppercase;}
+        .word-basic { font-size: 3.5rem; font-weight: bold; color: var(--charcoal); margin-bottom: 30px; line-height: 1; }
+        .basic-sentence-box {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            color: #555;
+            font-style: italic;
+            font-size: 1.1rem;
+            line-height: 1.5;
+            max-width: 90%;
+            border-left: 4px solid var(--khaki);
+        }
+        .tap-hint { font-size: 0.8rem; color: #bbb; margin-top: auto; padding-bottom: 10px; }
+
+        /* Back Face (Scrollable) */
+        .card-face.back {
+            transform: rotateY(180deg);
+            background-color: #fafafa;
+        }
+
+        .back-header {
+            width: 100%;
+            padding: 12px 15px;
+            background: white;
+            border-bottom: 1px solid #eee;
+            color: var(--khaki);
+            font-weight: bold;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            z-index: 5;
+        }
+
+        .scroll-container {
+            width: 100%;
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            box-sizing: border-box;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Synonym Block Styles */
+        .synonym-block {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        }
+
+        .synonym-header {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .syn-word { font-size: 1.5rem; font-weight: bold; color: var(--success); margin-right: 8px; }
+        .syn-kk { font-family: 'Lucida Sans Unicode', sans-serif; color: #999; font-size: 0.85rem; }
+        
+        .syn-def { 
+            font-size: 1rem; 
+            color: #333; 
+            font-weight: 500;
+            margin-bottom: 10px; 
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #eee;
+        }
+
+        /* Usage Note Box */
+        .usage-note {
+            background-color: var(--note-bg);
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        .usage-tag { font-weight: bold; color: var(--note-text); margin-right: 5px; font-size: 0.75rem; text-transform: uppercase; border: 1px solid var(--note-text); padding: 1px 4px; border-radius: 4px;}
+        .alert-tag { font-weight: bold; color: var(--alert-text); margin-right: 5px; font-size: 0.75rem; text-transform: uppercase; border: 1px solid var(--alert-text); padding: 1px 4px; border-radius: 4px; margin-left: 8px;}
+
+        /* Example Sentences */
+        .ex-section { margin-bottom: 10px; }
+        .ex-label { font-size: 0.7rem; color: #999; text-transform: uppercase; margin-bottom: 2px; display: block; letter-spacing: 0.5px; }
+        .ex-en { 
+            font-style: italic; 
+            color: #444; 
+            font-size: 0.95rem; 
+            line-height: 1.4; 
+            display: block;
+            margin-bottom: 2px;
+        }
+        .ex-ch { font-size: 0.85rem; color: #888; margin-bottom: 5px; display: block;}
+        
+        /* Audio Button Tiny */
+        .audio-inline-btn {
+            background: none;
+            border: 1px solid #ddd;
+            color: #888;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 10px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+        
+        /* Controls Area */
+        .controls-area {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .controls.visible { visibility: visible; opacity: 1; }
+
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .btn:active { transform: translateY(2px); }
+        .btn-fail { background-color: white; border: 2px solid var(--fail); color: var(--fail); }
+        .btn-pass { background-color: var(--success); color: white; }
+
+        /* Progress */
+        .progress-container {
+            width: 100%;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .progress-bar {
+            height: 6px;
+            background: #ddd;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: var(--khaki);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>VOCABULARY UPGRADE</h1>
+    <p class="subtitle">單字升級：基本例句對照 + 句型解析</p>
+</header>
+
+<div class="container">
+    <div class="scene">
+        <div class="card" onclick="flipCard()">
+            <div class="card-face front">
+                <div class="front-label">Basic Word (題目)</div>
+                <div class="word-basic" id="basicWord">Make</div>
+                
+                <div class="basic-sentence-box">
+                    "<span id="basicSentence">The technology makes us communicate easily.</span>"
+                </div>
+
+                <div class="tap-hint">Tap for Advanced Vocabulary</div>
+            </div>
+
+            <div class="card-face back">
+                <div class="back-header">
+                    <span>Suggested Upgrades</span>
+                    <span style="font-size: 1.2rem;">↴</span>
+                </div>
+                <div class="scroll-container" id="synonymsContainer">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls-area">
+        <div class="controls" id="controls">
+            <button class="btn btn-fail" onclick="handleResult(false)">不熟 (Review)</button>
+            <button class="btn btn-pass" onclick="handleResult(true)">學會了 (Mastered)</button>
+        </div>
+    </div>
+
+    <div class="progress-container">
+        <div style="font-size: 0.8rem; color:#888;" id="progressText">Loading...</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Data: 30 Words with REWRITE LOGIC, PATTERNS, and ALERTS ---
+    const vocabularyData = [
+        { 
+            basic: "Make", 
+            basicEx: "The technology makes us communicate easily.",
+            synonyms: [
+                { 
+                    word: "Enable", kk: "/ɪˈnebḷ/", def: "使能夠；提供機會", 
+                    pattern: "enable sb to V", alert: "不可寫 enable sb V (要加 to)",
+                    rewrite: "The technology enables us to communicate easily.", 
+                    rewriteTrans: "這項科技使我們能夠輕鬆溝通。",
+                    origEx: "Funding enabled the library to buy new books.", 
+                    origTrans: "資金使圖書館能夠購買新書。" 
+                },
+                { 
+                    word: "Render", kk: "/ˈrɛndɚ/", def: "致使；使成為 (常用於形容狀態)", 
+                    pattern: "render + O + OC (adj/N)", alert: "通常用於負面或正式語境",
+                    rewrite: "The technology renders communication easy.", 
+                    rewriteTrans: "這項科技讓溝通變得容易 (受詞結構需微調)。",
+                    origEx: "The shock rendered him speechless.", 
+                    origTrans: "震驚讓他變得啞口無言。" 
+                }
+            ]
+        },
+        { 
+            basic: "Think", 
+            basicEx: "I think that health is important.",
+            synonyms: [
+                { 
+                    word: "Maintain", kk: "/menˈten/", def: "堅稱；主張 (觀點)", 
+                    pattern: "maintain + that + 子句", alert: "勿與 '維修' 混淆",
+                    rewrite: "I maintain that health is important.", 
+                    rewriteTrans: "我堅信健康是重要的。",
+                    origEx: "Critics maintain that the law is unfair.", 
+                    origTrans: "批評者堅稱這項法律不公平。" 
+                },
+                { 
+                    word: "Argue", kk: "/ˈɑrgju/", def: "論證；認為 (提出理由)", 
+                    pattern: "argue + that + 子句", alert: "不僅是吵架，更是學術論證",
+                    rewrite: "I argue that health is important.", 
+                    rewriteTrans: "我主張(論證)健康是重要的。",
+                    origEx: "He argues that we should cut costs.", 
+                    origTrans: "他主張我們應該削減成本。" 
+                }
+            ]
+        },
+        { 
+            basic: "Get / Have", 
+            basicEx: "Students can get knowledge from books.",
+            synonyms: [
+                { 
+                    word: "Acquire", kk: "/əˈkwaɪr/", def: "習得；獲得 (知識/技能)", 
+                    pattern: "acquire + 知識/技能/習慣", alert: "較少用於具體物品 (如買筆)",
+                    rewrite: "Students can acquire knowledge from books.", 
+                    rewriteTrans: "學生可以從書本中獲取知識。",
+                    origEx: "She acquired a good knowledge of English.", 
+                    origTrans: "她習得了良好的英語知識。" 
+                },
+                { 
+                    word: "Obtain", kk: "/əbˈten/", def: "獲得 (經由努力/申請)", 
+                    pattern: "obtain + permission/info", alert: "比 get 正式許多",
+                    rewrite: "Students can obtain knowledge from books.", 
+                    rewriteTrans: "學生可以從書中獲得知識。",
+                    origEx: "You must obtain permission to build here.", 
+                    origTrans: "你必須獲得許可才能在這裡建造。" 
+                }
+            ]
+        },
+        { 
+            basic: "Use", 
+            basicEx: "We should use our time well.",
+            synonyms: [
+                { 
+                    word: "Utilize", kk: "/ˈjutḷˌaɪz/", def: "利用；善用 (發揮效用)", 
+                    pattern: "utilize + 資源/時間", alert: "強調有效利用",
+                    rewrite: "We should utilize our time well.", 
+                    rewriteTrans: "我們應該善用我們的時間。",
+                    origEx: "We must utilize every resource available.", 
+                    origTrans: "我們必須善用每一份可用資源。" 
+                },
+                { 
+                    word: "Employ", kk: "/ɪmˈplɔɪ/", def: "運用 (方法/技術/策略)", 
+                    pattern: "employ + method/strategy", alert: "不只是 '雇用' 的意思",
+                    rewrite: "We should employ our time wisely.", 
+                    rewriteTrans: "我們應該明智地運用時間。",
+                    origEx: "The writer employs a unique style.", 
+                    origTrans: "這位作家運用了一種獨特的風格。" 
+                }
+            ]
+        },
+        { 
+            basic: "Solve", 
+            basicEx: "We need to solve this problem.",
+            synonyms: [
+                { 
+                    word: "Tackle", kk: "/ˈtækḷ/", def: "著手處理 (難題)", 
+                    pattern: "tackle + problem/issue", alert: "像橄欖球員擒抱一樣迎擊問題",
+                    rewrite: "We need to tackle this problem.", 
+                    rewriteTrans: "我們需要著手處理這個問題。",
+                    origEx: "The government must tackle the crisis.", 
+                    origTrans: "政府必須著手處理這場危機。" 
+                },
+                { 
+                    word: "Address", kk: "/əˈdrɛs/", def: "設法解決；處理", 
+                    pattern: "address + issue/concern", alert: "Address 重音在第二音節",
+                    rewrite: "We need to address this problem.", 
+                    rewriteTrans: "我們需要處理這個問題。",
+                    origEx: "The policy addresses housing needs.", 
+                    origTrans: "這項政策解決了住房需求。" 
+                }
+            ]
+        },
+        { 
+            basic: "Improve", 
+            basicEx: "Reading improves your writing.",
+            synonyms: [
+                { 
+                    word: "Enhance", kk: "/ɪnˈhæns/", def: "提升；增強 (品質/價值)", 
+                    pattern: "enhance + quality/skill", alert: "通常指把好的變更好",
+                    rewrite: "Reading enhances your writing.", 
+                    rewriteTrans: "閱讀能提升你的寫作。",
+                    origEx: "Music can enhance the atmosphere.", 
+                    origTrans: "音樂可以提升氣氛。" 
+                },
+                { 
+                    word: "Boost", kk: "/bust/", def: "促進；推動；使增長", 
+                    pattern: "boost + confidence/economy", alert: "比喻為 '推進器'",
+                    rewrite: "Reading boosts your writing skills.", 
+                    rewriteTrans: "閱讀能增強你的寫作技巧。",
+                    origEx: "The tax cut boosted the economy.", 
+                    origTrans: "減稅推動了經濟發展。" 
+                }
+            ]
+        },
+        { 
+            basic: "Finish", 
+            basicEx: "I finished the project.",
+            synonyms: [
+                { 
+                    word: "Accomplish", kk: "/əˈkɑmplɪʃ/", def: "完成 (艱鉅任務)；達成", 
+                    pattern: "accomplish + mission/goal", alert: "帶有成就感",
+                    rewrite: "I accomplished the project.", 
+                    rewriteTrans: "我完成了這項專案 (強調成就)。",
+                    origEx: "We accomplished the mission successfully.", 
+                    origTrans: "我們成功完成了任務。" 
+                },
+                { 
+                    word: "Complete", kk: "/kəmˈplit/", def: "完成；結束 (強調完整性)", 
+                    pattern: "complete + form/course", alert: "也可用作形容詞 '完整的'",
+                    rewrite: "I completed the project.", 
+                    rewriteTrans: "我完成了這項專案。",
+                    origEx: "She completed her studies in May.", 
+                    origTrans: "她在五月完成了學業。" 
+                }
+            ]
+        },
+        { 
+            basic: "Want to", 
+            basicEx: "He wants to be a doctor.",
+            synonyms: [
+                { 
+                    word: "Aspire to", kk: "/əˈspaɪr tu/", def: "渴望；立志 (追求遠大目標)", 
+                    pattern: "aspire to V / aspire to be N", alert: "必須接 to",
+                    rewrite: "He aspires to be a doctor.", 
+                    rewriteTrans: "他立志成為一名醫生。",
+                    origEx: "She aspires to become a writer.", 
+                    origTrans: "她渴望成為一名作家。" 
+                },
+                { 
+                    word: "Intend to", kk: "/ɪnˈtɛnd tu/", def: "打算；意圖", 
+                    pattern: "intend to V", alert: "比 want 正式",
+                    rewrite: "He intends to be a doctor.", 
+                    rewriteTrans: "他打算成為一名醫生。",
+                    origEx: "I intend to stay for a week.", 
+                    origTrans: "我打算待一週。" 
+                }
+            ]
+        },
+        { 
+            basic: "Help", 
+            basicEx: "This tool helps you learn.",
+            synonyms: [
+                { 
+                    word: "Facilitate", kk: "/fəˈsɪləˌtet/", def: "促進；使...便利", 
+                    pattern: "facilitate + 事物 (N)", alert: "🚫不可接人 (facilitate sb to V 是錯的)",
+                    rewrite: "This tool facilitates your learning.", 
+                    rewriteTrans: "這個工具促進(便利)了你的學習。",
+                    origEx: "The new airport facilitates tourism.", 
+                    origTrans: "新機場促進了觀光業。" 
+                },
+                { 
+                    word: "Assist", kk: "/əˈsɪst/", def: "協助；幫助", 
+                    pattern: "assist sb in V-ing / with N", alert: "接 to V 較少見，建議用 in V-ing",
+                    rewrite: "This tool assists you in learning.", 
+                    rewriteTrans: "這個工具協助你學習。",
+                    origEx: "The robot assists doctors in surgery.", 
+                    origTrans: "機器人協助醫生進行手術。" 
+                }
+            ]
+        },
+        { 
+            basic: "Change", 
+            basicEx: "The internet changed our lives.",
+            synonyms: [
+                { 
+                    word: "Transform", kk: "/trænsˈfɔrm/", def: "徹底改變；改造 (外觀/性質)", 
+                    pattern: "transform A into B", alert: "強調本質上的巨大改變",
+                    rewrite: "The internet transformed our lives.", 
+                    rewriteTrans: "網路徹底改變了我們的生活。",
+                    origEx: "AI will transform the industry.", 
+                    origTrans: "人工智慧將徹底改造這個產業。" 
+                },
+                { 
+                    word: "Alter", kk: "/ˈɔltɚ/", def: "改變；修改 (部分特徵)", 
+                    pattern: "alter + plan/clothing", alert: "程度比 Change/Transform 輕微",
+                    rewrite: "The internet altered our lives.", 
+                    rewriteTrans: "網路改變了我們的生活模式。",
+                    origEx: "We had to alter our plans.", 
+                    origTrans: "我們不得不修改計畫。" 
+                }
+            ]
+        },
+        { 
+            basic: "Important", 
+            basicEx: "Water is important for life.",
+            synonyms: [
+                { 
+                    word: "Indispensable", kk: "/ˌɪndɪˈspɛnsəbḷ/", def: "不可或缺的；絕對必要的", 
+                    pattern: "be indispensable to + N", alert: "語氣比 important 強烈很多",
+                    rewrite: "Water is indispensable to life.", 
+                    rewriteTrans: "水對生命來說是不可或缺的。",
+                    origEx: "Smartphones are indispensable nowadays.", 
+                    origTrans: "智慧型手機現今是不可或缺的。" 
+                },
+                { 
+                    word: "Crucial", kk: "/ˈkruʃəl/", def: "至關重要的；決定性的", 
+                    pattern: "play a crucial role in...", alert: "指會影響成敗的關鍵",
+                    rewrite: "Water is crucial for life.", 
+                    rewriteTrans: "水對生命至關重要。",
+                    origEx: "Timing is crucial for success.", 
+                    origTrans: "時機對成功至關重要。" 
+                }
+            ]
+        },
+        { 
+            basic: "Good", 
+            basicEx: "Exercise is good for health.",
+            synonyms: [
+                { 
+                    word: "Beneficial", kk: "/ˌbɛnəˈfɪʃəl/", def: "有益的", 
+                    pattern: "be beneficial to + N", alert: "名詞是 Benefit",
+                    rewrite: "Exercise is beneficial to health.", 
+                    rewriteTrans: "運動對健康有益。",
+                    origEx: "Reading is beneficial to the mind.", 
+                    origTrans: "閱讀對心智有益。" 
+                },
+                { 
+                    word: "Advantageous", kk: "/ˌædvənˈtedʒəs/", def: "有利的；佔優勢的", 
+                    pattern: "prove advantageous to...", alert: "強調帶來競爭優勢",
+                    rewrite: "Exercise is advantageous to health.", 
+                    rewriteTrans: "運動對健康是有利的。",
+                    origEx: "The deal is advantageous to us.", 
+                    origTrans: "這筆交易對我們有利。" 
+                }
+            ]
+        },
+        { 
+            basic: "Bad", 
+            basicEx: "Smoking is bad for lungs.",
+            synonyms: [
+                { 
+                    word: "Detrimental", kk: "/ˌdɛtrəˈmɛntḷ/", def: "有害的；造成損害的", 
+                    pattern: "be detrimental to + N", alert: "to 是介系詞，後接 N",
+                    rewrite: "Smoking is detrimental to lungs.", 
+                    rewriteTrans: "吸菸對肺部有害。",
+                    origEx: "Stress is detrimental to health.", 
+                    origTrans: "壓力對健康有害。" 
+                },
+                { 
+                    word: "Harmful", kk: "/ˈhɑrmfəl/", def: "造成傷害的", 
+                    pattern: "be harmful to + N", alert: "比 Bad 正式一點",
+                    rewrite: "Smoking is harmful to lungs.", 
+                    rewriteTrans: "吸菸對肺部造成傷害。",
+                    origEx: "Pollution is harmful to the environment.", 
+                    origTrans: "污染對環境有害。" 
+                }
+            ]
+        },
+        { 
+            basic: "Happy", 
+            basicEx: "I am happy to hear that.",
+            synonyms: [
+                { 
+                    word: "Delighted", kk: "/dɪˈlaɪtɪd/", def: "感到愉快的；欣喜的", 
+                    pattern: "be delighted to V", alert: "比 Happy 更強烈、更正式",
+                    rewrite: "I am delighted to hear that.", 
+                    rewriteTrans: "聽到那件事我感到非常高興。",
+                    origEx: "We are delighted to invite you.", 
+                    origTrans: "我們很榮幸(高興)邀請您。" 
+                },
+                { 
+                    word: "Elated", kk: "/ɪˈletɪd/", def: "興高采烈的 (極度開心)", 
+                    pattern: "be elated at/by...", alert: "通常指贏得比賽或大獎後的狂喜",
+                    rewrite: "I am elated to hear that.", 
+                    rewriteTrans: "聽到那件事我欣喜若狂。",
+                    origEx: "He was elated by the victory.", 
+                    origTrans: "他因勝利而興高采烈。" 
+                }
+            ]
+        },
+        { 
+            basic: "Sad / Upset", 
+            basicEx: "He felt sad after failing.",
+            synonyms: [
+                { 
+                    word: "Frustrated", kk: "/ˈfrʌstretɪd/", def: "感到挫折的；灰心的", 
+                    pattern: "feel frustrated with...", alert: "指努力受阻時的無力感",
+                    rewrite: "He felt frustrated after failing.", 
+                    rewriteTrans: "失敗後他感到很挫折。",
+                    origEx: "I felt frustrated by the delays.", 
+                    origTrans: "我對延誤感到挫折。" 
+                },
+                { 
+                    word: "Depressed", kk: "/dɪˈprɛst/", def: "沮喪的；憂鬱的", 
+                    pattern: "be depressed about...", alert: "指長期的低落情緒",
+                    rewrite: "He felt depressed after failing.", 
+                    rewriteTrans: "失敗後他感到很沮喪。",
+                    origEx: "The rainy weather makes me depressed.", 
+                    origTrans: "下雨天讓我感到沮喪。" 
+                }
+            ]
+        },
+        { 
+            basic: "Many", 
+            basicEx: "There are many reasons.",
+            synonyms: [
+                { 
+                    word: "Numerous", kk: "/ˈnumərəs/", def: "許多的；為數眾多的", 
+                    pattern: "numerous + 可數複數 N", alert: "正式寫作首選",
+                    rewrite: "There are numerous reasons.", 
+                    rewriteTrans: "有為數眾多的理由。",
+                    origEx: "She received numerous awards.", 
+                    origTrans: "她獲得了無數獎項。" 
+                },
+                { 
+                    word: "A plethora of", kk: "/ˈplɛθərə/", def: "過多的；海量的", 
+                    pattern: "a plethora of + N", alert: "原意指過剩，現常用於指極多",
+                    rewrite: "There is a plethora of reasons.", 
+                    rewriteTrans: "有海量的理由。",
+                    origEx: "There is a plethora of information online.", 
+                    origTrans: "網路上有海量的資訊。" 
+                }
+            ]
+        },
+        { 
+            basic: "Big", 
+            basicEx: "It makes a big difference.",
+            synonyms: [
+                { 
+                    word: "Tremendous", kk: "/trɪˈmɛndəs/", def: "巨大的；極好的", 
+                    pattern: "tremendous amount/effort", alert: "語氣非常強烈",
+                    rewrite: "It makes a tremendous difference.", 
+                    rewriteTrans: "這造成了巨大的差異。",
+                    origEx: "They made a tremendous effort.", 
+                    origTrans: "他們付出了巨大的努力。" 
+                },
+                { 
+                    word: "Significant", kk: "/sɪgˈnɪfəkənt/", def: "重大的；顯著的", 
+                    pattern: "significant impact/change", alert: "強調重要性而非體積",
+                    rewrite: "It makes a significant difference.", 
+                    rewriteTrans: "這造成了顯著的差異。",
+                    origEx: "This is a significant discovery.", 
+                    origTrans: "這是一個重大的發現。" 
+                }
+            ]
+        },
+        { 
+            basic: "Hard", 
+            basicEx: "The work is hard.",
+            synonyms: [
+                { 
+                    word: "Challenging", kk: "/ˈtʃælɪndʒɪŋ/", def: "具挑戰性的", 
+                    pattern: "challenging task/job", alert: "正面看待困難 (比 Hard 好聽)",
+                    rewrite: "The work is challenging.", 
+                    rewriteTrans: "這份工作很具挑戰性。",
+                    origEx: "It was a challenging climb.", 
+                    origTrans: "這是一次具挑戰性的攀登。" 
+                },
+                { 
+                    word: "Demanding", kk: "/dɪˈmændɪŋ/", def: "費力的；要求高的", 
+                    pattern: "demanding boss/schedule", alert: "指需要付出大量心力",
+                    rewrite: "The work is demanding.", 
+                    rewriteTrans: "這份工作很費力(要求很高)。",
+                    origEx: "Nursing is a demanding profession.", 
+                    origTrans: "護理是一個費力的職業。" 
+                }
+            ]
+        },
+        { 
+            basic: "Different", 
+            basicEx: "People have different ideas.",
+            synonyms: [
+                { 
+                    word: "Diverse", kk: "/dɑɪˈvɝs/", def: "多元的；形形色色的", 
+                    pattern: "diverse culture/backgrounds", alert: "強調多樣性",
+                    rewrite: "People have diverse ideas.", 
+                    rewriteTrans: "人們有形形色色(多元)的想法。",
+                    origEx: "We live in a culturally diverse society.", 
+                    origTrans: "我們生活在一個文化多元的社會。" 
+                },
+                { 
+                    word: "Distinct", kk: "/dɪˈstɪŋkt/", def: "截然不同的；明顯的", 
+                    pattern: "distinct from...", alert: "強調兩者區別明顯",
+                    rewrite: "People have distinct ideas.", 
+                    rewriteTrans: "人們有截然不同的想法。",
+                    origEx: "There are distinct differences between them.", 
+                    origTrans: "他們之間有明顯的差異。" 
+                }
+            ]
+        },
+        { 
+            basic: "Convenient", 
+            basicEx: "The subway is convenient.",
+            synonyms: [
+                { 
+                    word: "Accessible", kk: "/əkˈsɛsəbḷ/", def: "易於到達/使用的", 
+                    pattern: "be accessible to...", alert: "Convenient 指省事，Accessible 指無障礙",
+                    rewrite: "The subway makes the city accessible.", 
+                    rewriteTrans: "地鐵讓城市變得易於到達。(語意微調)",
+                    origEx: "The museum is easily accessible by bus.", 
+                    origTrans: "這座博物館搭公車很容易到達。" 
+                },
+                { 
+                    word: "User-friendly", kk: "/ˈjuzɚ ˈfrɛndli/", def: "好用的；人性化的", 
+                    pattern: "user-friendly interface", alert: "多用於科技產品或系統",
+                    rewrite: "The subway system is user-friendly.", 
+                    rewriteTrans: "這個地鐵系統非常人性化。",
+                    origEx: "This software is very user-friendly.", 
+                    origTrans: "這套軟體非常人性化(好上手)。" 
+                }
+            ]
+        },
+        { 
+            basic: "However", 
+            basicEx: "It rained; however, we went out.",
+            synonyms: [
+                { 
+                    word: "Nevertheless", kk: "/ˌnɛvɚðəˈlɛs/", def: "儘管如此 (語氣強)", 
+                    pattern: "放在句首或分號後", alert: "比 However 更正式堅定",
+                    rewrite: "It rained; nevertheless, we went out.", 
+                    rewriteTrans: "下雨了，儘管如此我們還是出去了。",
+                    origEx: "The risk is high; nevertheless, we must try.", 
+                    origTrans: "風險很高，儘管如此我們必須嘗試。" 
+                },
+                { 
+                    word: "Conversely", kk: "/kənˈvɝsli/", def: "相反地 (用於對比)", 
+                    pattern: "用於比較兩個相反的情況", alert: "不是 '儘管如此'，是 '相反地'",
+                    rewrite: "Some stayed; conversely, we went out.", 
+                    rewriteTrans: "有些人留下了，相反地，我們出去了 (改寫情境以符合單字)。",
+                    origEx: "Northern areas are wet; conversely, the south is dry.", 
+                    origTrans: "北部潮濕，相反地，南部乾燥。" 
+                }
+            ]
+        },
+        { 
+            basic: "Therefore", 
+            basicEx: "It rained, and therefore we stayed home.",
+            synonyms: [
+                { 
+                    word: "Consequently", kk: "/ˈkɑnsəkwɛntlɪ/", def: "結果；因此", 
+                    pattern: "強調 '因果關係'", alert: "通常接在分號後",
+                    rewrite: "It rained; consequently, we stayed home.", 
+                    rewriteTrans: "下雨了，結果我們待在雷家。",
+                    origEx: "He failed the exam; consequently, he retook it.", 
+                    origTrans: "他考試不及格，因此必須重考。" 
+                },
+                { 
+                    word: "Hence", kk: "/hɛns/", def: "因此 (較正式)", 
+                    pattern: "Hence + N (省略動詞) 或句子", alert: "極正式，可用於名詞前",
+                    rewrite: "It rained, hence our decision to stay home.", 
+                    rewriteTrans: "下雨了，因此我們決定待在家 (結構改變)。",
+                    origEx: "He is new, hence the mistake.", 
+                    origTrans: "他是新人，因此犯了這個錯。" 
+                }
+            ]
+        },
+        { 
+            basic: "Also", 
+            basicEx: "It is cheap. Also, it is good.",
+            synonyms: [
+                { 
+                    word: "Furthermore", kk: "/ˈfɝðɚˌmɔr/", def: "此外 (進一步論述)", 
+                    pattern: "用於疊加論點", alert: "語氣比 Also 強",
+                    rewrite: "It is cheap; furthermore, it is good.", 
+                    rewriteTrans: "它很便宜，此外，它很好。",
+                    origEx: "The house is beautiful; furthermore, it's cheap.", 
+                    origTrans: "這房子很美，此外，它很便宜。" 
+                },
+                { 
+                    word: "Moreover", kk: "/mɔrˈovɚ/", def: "再者；而且", 
+                    pattern: "用於補充更有力的理由", alert: "與 Furthermore 通用",
+                    rewrite: "It is cheap; moreover, it is good.", 
+                    rewriteTrans: "它很便宜，而且它很好。",
+                    origEx: "Rent is high; moreover, the room is small.", 
+                    origTrans: "租金很高，而且房間很小。" 
+                }
+            ]
+        },
+        { 
+            basic: "Recently", 
+            basicEx: "Recently, people use AI.",
+            synonyms: [
+                { 
+                    word: "In contemporary society", kk: "/kənˈtɛmpəˌrɛri/", def: "在當代社會中", 
+                    pattern: "放在句首作時間/地點狀語", alert: "用來指 '現今' 的大環境",
+                    rewrite: "In contemporary society, people use AI.", 
+                    rewriteTrans: "在當代社會中，人們使用人工智慧。",
+                    origEx: "Stress is common in contemporary society.", 
+                    origTrans: "在當代社會中，壓力是很普遍的。" 
+                },
+                { 
+                    word: "Nowadays", kk: "/ˈnaʊəˌdez/", def: "現今；如今", 
+                    pattern: "與現在簡單式連用", alert: "不可寫 in nowadays",
+                    rewrite: "Nowadays, people use AI.", 
+                    rewriteTrans: "現今，人們使用人工智慧。",
+                    origEx: "Nowadays, everyone has a smartphone.", 
+                    origTrans: "現今，每個人都有智慧型手機。" 
+                }
+            ]
+        },
+        { 
+            basic: "More and more", 
+            basicEx: "More and more people like it.",
+            synonyms: [
+                { 
+                    word: "Increasingly", kk: "/ɪnˈkrisɪŋli/", def: "日益增加地；越來越...", 
+                    pattern: "be becoming increasingly + adj", alert: "修飾形容詞或副詞",
+                    rewrite: "It is becoming increasingly popular.", 
+                    rewriteTrans: "它正變得越來越受歡迎 (改寫以符合副詞用法)。",
+                    origEx: "The test is becoming increasingly difficult.", 
+                    origTrans: "考試變得日益困難。" 
+                },
+                { 
+                    word: "An increasing number of", kk: "/ɪnˈkrisɪŋ/", def: "越來越多的...", 
+                    pattern: "+ 可數名詞複數", alert: "動詞用複數",
+                    rewrite: "An increasing number of people like it.", 
+                    rewriteTrans: "越來越多的人喜歡它。",
+                    origEx: "An increasing number of students study abroad.", 
+                    origTrans: "越來越多的學生出國留學。" 
+                }
+            ]
+        },
+        { 
+            basic: "Very", 
+            basicEx: "It is very cold.",
+            synonyms: [
+                { 
+                    word: "Extremely", kk: "/ɪkˈstrimli/", def: "極度地", 
+                    pattern: "extremely + adj", alert: "表示程度極高",
+                    rewrite: "It is extremely cold.", 
+                    rewriteTrans: "天氣極度寒冷。",
+                    origEx: "She is extremely intelligent.", 
+                    origTrans: "她極度聰明。" 
+                },
+                { 
+                    word: "Exceedingly", kk: "/ɪkˈsidɪŋli/", def: "非常 (超過尋常程度)", 
+                    pattern: "exceedingly + adj", alert: "較正式",
+                    rewrite: "It is exceedingly cold.", 
+                    rewriteTrans: "天氣異常寒冷。",
+                    origEx: "The test was exceedingly difficult.", 
+                    origTrans: "這考試極其困難。" 
+                }
+            ]
+        },
+        { 
+            basic: "Finally", 
+            basicEx: "Finally, he arrived.",
+            synonyms: [
+                { 
+                    word: "Ultimately", kk: "/ˈʌltəmɪtlɪ/", def: "最終；終究 (經過漫長過程)", 
+                    pattern: "強調最終的結果或本質", alert: "不只是時間上的最後",
+                    rewrite: "Ultimately, he arrived.", 
+                    rewriteTrans: "最終，他還是抵達了。",
+                    origEx: "Ultimately, the decision is yours.", 
+                    origTrans: "最終，決定權在你。" 
+                },
+                { 
+                    word: "In the long run", kk: "/lɔŋ rʌn/", def: "從長遠來看", 
+                    pattern: "用於預測未來結果", alert: "非單一時間點",
+                    rewrite: "It will pay off in the long run.", 
+                    rewriteTrans: "從長遠來看，這會有回報 (改寫情境)。",
+                    origEx: "Quitting smoking helps in the long run.", 
+                    origTrans: "戒菸從長遠來看有幫助。" 
+                }
+            ]
+        },
+        { 
+            basic: "For example", 
+            basicEx: "I like fruits, for example, apples.",
+            synonyms: [
+                { 
+                    word: "For instance", kk: "/fɔr ˈɪnstəns/", def: "例如", 
+                    pattern: "與 for example 通用", alert: "可放在句首、句中或句尾",
+                    rewrite: "I like fruits, for instance, apples.", 
+                    rewriteTrans: "我喜歡水果，例如蘋果。",
+                    origEx: "There are many hazards, for instance, fire.", 
+                    origTrans: "有許多危險，例如火災。" 
+                },
+                { 
+                    word: "To illustrate", kk: "/tu ˈɪləˌstret/", def: "舉例說明", 
+                    pattern: "通常接完整的句子", alert: "用例子來解釋觀點",
+                    rewrite: "To illustrate, consider apples as a fruit choice.", 
+                    rewriteTrans: "舉例說明，將蘋果視為一種水果選擇 (改寫)。",
+                    origEx: "To illustrate, let me tell you a story.", 
+                    origTrans: "為了舉例說明，讓我告訴你一個故事。" 
+                }
+            ]
+        },
+        { 
+            basic: "In my opinion", 
+            basicEx: "In my opinion, it is wrong.",
+            synonyms: [
+                { 
+                    word: "From my perspective", kk: "/pɚˈspɛktɪv/", def: "從我的觀點來看", 
+                    pattern: "表示個人的角度", alert: "比 In my opinion 客觀一點",
+                    rewrite: "From my perspective, it is wrong.", 
+                    rewriteTrans: "從我的角度來看，這是錯的。",
+                    origEx: "From my perspective, this is a fair deal.", 
+                    origTrans: "從我的角度來看，這是個公平的交易。" 
+                },
+                { 
+                    word: "As far as I am concerned", kk: "/kənˈsɝnd/", def: "就我而言", 
+                    pattern: "強調個人立場，不代表他人", alert: "常用於表達不同意時",
+                    rewrite: "As far as I am concerned, it is wrong.", 
+                    rewriteTrans: "就我而言，這是錯的。",
+                    origEx: "As far as I am concerned, the matter is closed.", 
+                    origTrans: "就我而言，這件事已經結束了。" 
+                }
+            ]
+        },
+        { 
+            basic: "People", 
+            basicEx: "People should follow rules.",
+            synonyms: [
+                { 
+                    word: "Individuals", kk: "/ˌɪndəˈvɪdʒʊəlz/", def: "個人；個體", 
+                    pattern: "強調個體責任", alert: "比 People 正式",
+                    rewrite: "Individuals should follow rules.", 
+                    rewriteTrans: "個人應該遵守規則。",
+                    origEx: "Individuals must pay taxes.", 
+                    origTrans: "個人必須繳稅。" 
+                },
+                { 
+                    word: "The public", kk: "/ðə ˈpʌblɪk/", def: "大眾；公眾", 
+                    pattern: "指社會全體", alert: "視為集合名詞",
+                    rewrite: "The public should follow rules.", 
+                    rewriteTrans: "大眾應該遵守規則。",
+                    origEx: "The museum is open to the public.", 
+                    origTrans: "博物館對大眾開放。" 
+                }
+            ]
+        }
+    ];
+
+    // --- State Management ---
+    let queue = [];
+    let currentIndex = 0;
+    let isFlipped = false;
+    let initialCount = 0;
+    const STORAGE_KEY = 'writing_upgrade_pro_v5';
+
+    function saveState() {
+        const state = {
+            queue: queue,
+            currentIndex: currentIndex,
+            initialCount: initialCount
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function loadState() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            const state = JSON.parse(saved);
+            queue = state.queue;
+            currentIndex = state.currentIndex;
+            initialCount = state.initialCount || queue.length;
+            return true;
+        }
+        return false;
+    }
+
+    function resetProgress() {
+        if(confirm("確定要重置進度嗎？所有紀錄將會清除。")) {
+            localStorage.removeItem(STORAGE_KEY);
+            location.reload();
+        }
+    }
+
+    // --- Core Logic ---
+    function init() {
+        if (!loadState()) {
+            queue = [...vocabularyData].sort(() => Math.random() - 0.5);
+            currentIndex = 0;
+            initialCount = queue.length;
+        }
+
+        loadCard(currentIndex);
+        updateProgress();
+
+        if (!document.getElementById('resetBtn')) {
+            const footer = document.createElement('div');
+            footer.style.marginTop = "30px";
+            footer.style.paddingBottom = "30px";
+            footer.innerHTML = `<button id="resetBtn" onclick="resetProgress()" style="background:none; border:none; text-decoration:underline; color:#bbb; cursor:pointer;">Reset Progress</button>`;
+            document.querySelector('.container').appendChild(footer);
+        }
+    }
+
+    function loadCard(index) {
+        if (index >= queue.length) {
+            document.querySelector('.scene').innerHTML = `
+                <div style="text-align:center; padding: 40px; color: #444;">
+                    <h2>🎉 Congratulations!</h2>
+                    <p>你已經完成本輪所有單字複習！</p>
+                    <button class="btn btn-pass" onclick="resetProgress()">重新開始 (Start Over)</button>
+                </div>
+            `;
+            document.getElementById('controls').classList.remove('visible');
+            document.querySelector('.progress-container').style.display = 'none';
+            return;
+        }
+
+        const item = queue[index];
+        const cardElement = document.querySelector('.card');
+        
+        if (isFlipped) {
+            cardElement.classList.remove('is-flipped');
+            isFlipped = false;
+            document.getElementById('controls').classList.remove('visible');
+            setTimeout(() => populateData(item), 300);
+        } else {
+            populateData(item);
+            document.getElementById('controls').classList.remove('visible');
+        }
+    }
+
+    function populateData(item) {
+        // Front
+        document.getElementById('basicWord').innerText = item.basic;
+        document.getElementById('basicSentence').innerText = item.basicEx;
+
+        // Back
+        const container = document.getElementById('synonymsContainer');
+        container.innerHTML = ''; 
+        container.scrollTop = 0; 
+
+        item.synonyms.forEach(syn => {
+            const block = document.createElement('div');
+            block.className = 'synonym-block';
+            
+            // Safe quotes for JS strings in onclick
+            const cleanRewrite = syn.rewrite.replace(/'/g, "\\'");
+            const cleanOrig = syn.origEx.replace(/'/g, "\\'");
+            const cleanWord = syn.word.replace(/'/g, "\\'");
+
+            block.innerHTML = `
+                <div class="synonym-header">
+                    <span class="syn-word">${syn.word}</span>
+                    <span class="syn-kk">${syn.kk}</span>
+                    <button class="audio-inline-btn" onclick="event.stopPropagation(); playGoogleAudio('${cleanWord}')">🔊</button>
+                </div>
+                <div class="syn-def">${syn.def}</div>
+                
+                <div class="usage-note">
+                    <div><span class="usage-tag">常見搭配</span> ${syn.pattern}</div>
+                    <div style="margin-top:4px;"><span class="alert-tag">注意</span> ${syn.alert}</div>
+                </div>
+
+                <div class="ex-section">
+                    <span class="ex-label">REWRITE (改寫基礎句)</span>
+                    <span class="ex-en">${syn.rewrite} <button class="audio-inline-btn" onclick="event.stopPropagation(); playGoogleAudio('${cleanRewrite}')">🔊</button></span>
+                    <span class="ex-ch">${syn.rewriteTrans}</span>
+                </div>
+
+                <div class="ex-section" style="margin-bottom:0;">
+                    <span class="ex-label">EXAMPLE (道地例句)</span>
+                    <span class="ex-en">${syn.origEx} <button class="audio-inline-btn" onclick="event.stopPropagation(); playGoogleAudio('${cleanOrig}')">🔊</button></span>
+                    <span class="ex-ch">${syn.origTrans}</span>
+                </div>
+            `;
+            container.appendChild(block);
+        });
+    }
+
+    function flipCard() {
+        if (isFlipped) return;
+        
+        const card = document.querySelector('.card');
+        card.classList.add('is-flipped');
+        isFlipped = true;
+        
+        setTimeout(() => {
+            document.getElementById('controls').classList.add('visible');
+        }, 400);
+    }
+
+    function playGoogleAudio(text) {
+        if (!text) return;
+        const encodedText = encodeURIComponent(text);
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&q=${encodedText}`;
+        const audio = new Audio(url);
+        audio.play().catch(e => console.error("Audio playback error:", e));
+    }
+
+    function handleResult(known) {
+        const currentItem = queue[currentIndex];
+        if (!known) {
+            queue.push(currentItem);
+        }
+        currentIndex++;
+        saveState();
+        loadCard(currentIndex);
+        updateProgress();
+    }
+
+    function updateProgress() {
+        let progress = Math.min(100, (currentIndex / queue.length) * 100);
+        let remaining = queue.length - currentIndex;
+        document.getElementById('progressText').innerText = `Cards Remaining: ${remaining}`;
+        document.getElementById('progressFill').style.width = `${progress}%`;
+    }
+
+    init();
+
+</script>
+
+</body>
+</html>
